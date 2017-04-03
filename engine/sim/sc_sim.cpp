@@ -652,6 +652,11 @@ bool parse_fight_style( sim_t*             sim,
     sim -> raid_events_str += "/movement,first=13,distance=5,cooldown=20,players_only=1,player_chance=0.1";
     sim -> raid_events_str += "/adds,name=Beast,count=1,first=10,duration=" + util::to_string( int( sim -> max_time.total_seconds() * 0.15 ) ) + ",cooldown=" + util::to_string( int( sim -> max_time.total_seconds() * 0.25 ) ) + ",last=" + util::to_string( int( sim -> max_time.total_seconds() * 0.65 ) ) + ",duration_stddev=5,cooldown_stddev=10";
   }
+  else if ( util::str_compare_ci( value, "CastingPatchwerk" ) )
+  {
+    sim->fight_style = "CastingPatchwerk";
+    sim->raid_events_str += "/casting,cooldown=500,duration=500";
+  }
   else
   {
     std::cout << "Custom fight style specified: " << value << std::endl;
@@ -1011,7 +1016,7 @@ struct resource_timeline_collect_event_t : public event_t
       else
       {
         auto p = sim().player_no_pet_list[ sim().current_index ];
-        if ( p -> primary_resource() != RESOURCE_NONE )
+        if (p && p -> primary_resource() != RESOURCE_NONE)
         {
           p -> collect_resource_timeline_information();
           for ( auto pet : p -> pet_list )
@@ -1067,13 +1072,13 @@ struct regen_event_t : public event_t
     else
     {
       auto p = sim().player_no_pet_list[ sim().current_index ];
-      if ( p -> primary_resource() != RESOURCE_NONE && p -> regen_type == REGEN_STATIC )
+      if ( p && p -> primary_resource() != RESOURCE_NONE && p -> regen_type == REGEN_STATIC )
       {
         p -> regen( sim().regen_periodicity );
         for ( auto pet : p -> pet_list )
         {
           if ( ! pet -> is_sleeping() && p -> primary_resource() != RESOURCE_NONE &&
-               p -> regen_type == REGEN_STATIC )
+            p -> regen_type == REGEN_STATIC )
           {
             pet -> regen( sim().regen_periodicity );
           }
@@ -1195,8 +1200,11 @@ struct bloodlust_check_t : public event_t
        else
        {
          auto p = sim.player_no_pet_list[ sim.current_index ];
-         p -> buffs.bloodlust -> trigger();
-         p -> buffs.exhaustion -> trigger();
+         if ( p )
+         {
+           p -> buffs.bloodlust -> trigger();
+           p -> buffs.exhaustion -> trigger();
+         }
        }
      }
      else
@@ -1518,13 +1526,9 @@ void sim_t::cancel()
   }
 
   work_queue -> flush();
-  if ( single_actor_batch )
-  {
-    current_index = player_no_pet_list.size();
-  }
 
   canceled = 1;
-  
+
   for (auto & relative : relatives)
   {
     relative -> cancel();
@@ -1596,7 +1600,7 @@ void sim_t::reset()
   for ( auto& target : target_list )
     target -> reset();
 
-  if ( single_actor_batch && current_index < player_no_pet_list.size() )
+  if ( single_actor_batch )
   {
     player_no_pet_list[ current_index ] -> reset();
     // make sure to reset pets after owner, or otherwards they may access uninitialized things from the owner
@@ -1681,7 +1685,7 @@ void sim_t::combat_begin()
 
   raid_event_t::combat_begin( this );
 
-  if ( single_actor_batch && current_index < player_no_pet_list.size() )
+  if ( single_actor_batch )
   {
     player_no_pet_list[ current_index ] -> combat_begin();
     for ( auto pet: player_no_pet_list[ current_index ] -> pet_list )
@@ -1739,7 +1743,7 @@ void sim_t::combat_end()
 
   raid_event_t::combat_end( this );
 
-  if ( single_actor_batch && current_index < player_no_pet_list.size() )
+  if ( single_actor_batch )
   {
     player_no_pet_list[ current_index ] -> combat_end();
   }
@@ -1797,7 +1801,7 @@ void sim_t::datacollection_begin()
   for ( size_t i = 0; i < buff_list.size(); ++i )
     buff_list[ i ] -> datacollection_begin();
 
-  if ( single_actor_batch && current_index < player_no_pet_list.size() )
+  if ( single_actor_batch )
   {
     player_no_pet_list[ current_index ] -> datacollection_begin();
   }
@@ -1827,7 +1831,7 @@ void sim_t::datacollection_end()
     t -> datacollection_end();
   }
 
-  if ( single_actor_batch && current_index < player_no_pet_list.size() )
+  if ( single_actor_batch )
   {
     player_no_pet_list[ current_index ] -> datacollection_end();
   }
@@ -1897,7 +1901,7 @@ void sim_t::analyze_error()
 
   current_error = 0;
 
-  if ( single_actor_batch && current_index < player_no_pet_list.size() )
+  if ( single_actor_batch )
   {
     auto p = player_no_pet_list[ current_index ];
     auto& cd = p -> collected_data;
@@ -2140,8 +2144,6 @@ bool sim_t::init_actors()
 // critical here. Called in sim_t::init()
 bool sim_t::init_actor( player_t* p )
 {
-  bool ret = true;
-
   // initialize class/enemy modules
   for ( player_e i = PLAYER_NONE; i < PLAYER_MAX; ++i )
   {
@@ -2170,7 +2172,7 @@ bool sim_t::init_actor( player_t* p )
   // Initialize each actor's items, construct gear information & stats
   if ( ! p -> init_items() )
   {
-    ret = false;
+    return false;
   }
 
   p -> init_artifact();
@@ -2182,13 +2184,13 @@ bool sim_t::init_actor( player_t* p )
   // actions (APLs, really) based on the presence of special effects on items.
   if ( ! p -> create_special_effects() )
   {
-    ret = false;
+    return false;
   }
 
   // First, create all the action objects and set up action lists properly
   if ( ! p -> create_actions() )
   {
-    ret = false;
+    return false;
   }
 
   // Create all actor pets before special effects get initialized. This ensures that we can use
@@ -2200,13 +2202,13 @@ bool sim_t::init_actor( player_t* p )
   // Second-phase initialize all special effects and register them to actors
   if ( ! p -> init_special_effects() )
   {
-    ret = false;
+    return false;
   }
 
   // Finally, initialize all action objects
   if ( ! p -> init_actions() )
   {
-    ret = false;
+    return false;
   }
 
   // Once all transient properties are initialized (e.g., base stats, spells, special effects,
@@ -2226,7 +2228,7 @@ bool sim_t::init_actor( player_t* p )
   p -> init_absorb_priority();
   p -> init_assessors();
 
-  return ret;
+  return true;
 }
 
 // sim_t::init_actor_pets ===================================================
@@ -2514,8 +2516,12 @@ bool sim_t::iterate()
 
   if ( single_actor_batch && ! parent )
   {
-    sim_phase_str = "Generating " + player_no_pet_list[ current_index ] -> name_str;
+    sim_phase_str = "Generating " + util::to_string( current_index + 1 ) + "/" +
+      util::to_string( player_no_pet_list.size() ) + " " +
+      player_no_pet_list[ current_index ] -> name_str;
   }
+
+  activate_actors();
 
   bool more_work = true;
   do
@@ -2532,29 +2538,30 @@ bool sim_t::iterate()
 
     do_pause();
     auto old_active = current_index;
-    current_index = work_queue -> pop();
-
-    if ( ! single_actor_batch )
+    if ( ! canceled )
     {
-      more_work = current_index == 0;
-    }
-    else
-    {
-      more_work = current_index < player_no_pet_list.size();
+      current_index = work_queue -> pop();
+      more_work = work_queue -> more_work();
 
-      if ( current_index != old_active && more_work )
+      if ( single_actor_batch )
       {
-        if ( ! parent )
+        if ( current_index != old_active && more_work )
         {
-          progress_bar.update( true, static_cast<int>( old_active ) );
-          progress_bar.restart();
-          util::fprintf( stdout, "%s %s\n", sim_phase_str.c_str(), progress_bar.status.c_str() );
-          fflush( stdout );
-          sim_phase_str = "Generating " + player_no_pet_list[ current_index ] -> name_str;
-        }
+          if ( ! parent )
+          {
+            progress_bar.update( true, static_cast<int>( old_active ) );
+            progress_bar.restart();
+            util::fprintf( stdout, "%s %s\n", sim_phase_str.c_str(), progress_bar.status.c_str() );
+            fflush( stdout );
+            sim_phase_str = "Generating " + util::to_string( current_index + 1 ) + "/" +
+              util::to_string( player_no_pet_list.size() ) + " " +
+              player_no_pet_list[ current_index ] -> name_str;
+          }
 
-        current_iteration = -1;
-        range::for_each( target_list, []( player_t* t ) { t -> actor_changed(); } );
+          current_iteration = -1;
+          range::for_each( target_list, []( player_t* t ) { t -> actor_changed(); } );
+          activate_actors();
+        }
       }
     }
   } while ( more_work && ! canceled );
@@ -3630,5 +3637,31 @@ void sim_t::disable_debug_seed()
     debug = false;
     log = 0;
     static_cast<io::ofstream*>(out_std.get_stream()) -> close();
+  }
+}
+
+// Activates the relevant actors in the simulator just before simulating, based on the relevant
+// simulation mode (single vs multi actor).
+void sim_t::activate_actors()
+{
+  // Clear out all callbacks
+  target_list.reset_callbacks();
+  target_non_sleeping_list.reset_callbacks();
+  player_list.reset_callbacks();
+  player_no_pet_list.reset_callbacks();
+  player_non_sleeping_list.reset_callbacks();
+  healing_no_pet_list.reset_callbacks();
+  healing_pet_list.reset_callbacks();
+
+  // Normal sim mode activates all actors .. and this method is only called once at the beginning of
+  // the simulation run.
+  if ( ! single_actor_batch )
+  {
+    range::for_each( player_list, []( player_t* p ) { p -> activate(); } );
+  }
+  // Single-actor batch mode activates the current active actor
+  else
+  {
+    player_no_pet_list[ current_index ] -> activate();
   }
 }

@@ -81,7 +81,9 @@ void add_color_data( sc_js_t& data,
 {
   for ( auto p : player_list )
   {
-    data.set( "__colors." + p->name_str, color::class_color( p->type ).str() );
+    std::string sanitized_name = p -> name_str;
+    util::replace_all( sanitized_name, ".", "_" );
+    data.set( "__colors.C_" + sanitized_name, color::class_color( p->type ).str() );
   }
 }
 
@@ -190,9 +192,13 @@ metric_e populate_player_list( const std::string& type, const sim_t& sim,
   }
   else if ( util::str_compare_ci( type, "variance" ) )
   {
-    name        = "DPS Variance Percentage";
-    source_list = &sim.players_by_variance;
-    m           = METRIC_VARIANCE;
+    // Variance implies there is DPS output in the simulator
+    if ( sim.raid_dps.mean() > 0 )
+    {
+      name        = "DPS Variance Percentage";
+      source_list = &sim.players_by_variance;
+      m           = METRIC_VARIANCE;
+    }
   }
 
   if ( source_list != nullptr )
@@ -204,69 +210,12 @@ metric_e populate_player_list( const std::string& type, const sim_t& sim,
   return pl.size() > 1 ? m : METRIC_NONE;
 }
 
-double compute_median( const std::vector<const player_t*>& pl, metric_e metric,
-                       metric_value_e val )
-{
-  if ( pl.size() < 2 )
-  {
-    return 0;
-  }
-
-  if ( !pl[ 0 ]->sim->chart_show_relative_difference )
-  {
-    return 0;
-  }
-
-  size_t m = pl.size() / 2;
-
-  const extended_sample_data_t *d1 = nullptr, *d2 = nullptr;
-  double median = 0;
-
-  switch ( metric )
-  {
-    case METRIC_DPS:
-      d1 = &pl[ m ]->collected_data.dps;
-      d2 = pl.size() % 2 ? d1 : &pl[ m - 1 ]->collected_data.dps;
-      break;
-    case METRIC_PDPS:
-      d1 = &pl[ m ]->collected_data.prioritydps;
-      d2 = pl.size() % 2 ? d1 : &pl[ m - 1 ]->collected_data.prioritydps;
-      break;
-    case METRIC_HPS:
-      d1 = &pl[ m ]->collected_data.hps;
-      d2 = pl.size() % 2 ? d1 : &pl[ m - 1 ]->collected_data.hps;
-      break;
-    case METRIC_DTPS:
-      d1 = &pl[ m ]->collected_data.dtps;
-      d2 = pl.size() % 2 ? d1 : &pl[ m - 1 ]->collected_data.dtps;
-      break;
-    case METRIC_TMI:
-      d1 = &pl[ m ]->collected_data.theck_meloree_index;
-      d2 =
-          pl.size() % 2 ? d1 : &pl[ m - 1 ]->collected_data.theck_meloree_index;
-      break;
-    default:
-      return 0;
-  }
-
-  switch ( val )
-  {
-    case VALUE_MEAN:
-      median = ( d1->mean() + d2->mean() ) / 2.0;
-      break;
-    default:
-      break;
-  }
-
-  return median;
-}
-
 std::vector<double> get_data_summary( const player_collected_data_t& container,
                                       metric_e metric,
                                       double percentile = 0.25 )
 {
   const extended_sample_data_t* c = nullptr;
-  std::vector<double> data( 5, 0 );
+  std::vector<double> data( 6, 0 );
   switch ( metric )
   {
     case METRIC_DPS:
@@ -296,6 +245,7 @@ std::vector<double> get_data_summary( const player_collected_data_t& container,
   data[ 2 ] = c->mean();
   data[ 3 ] = c->percentile( 1 - percentile );
   data[ 4 ] = c->max();
+  data[ 5 ] = c->percentile( .5 );
 
   return data;
 }
@@ -672,8 +622,8 @@ bool chart::generate_reforge_plot( highchart::chart_t& ac, const player_t& p )
     double v = util::round( pdata[ 2 ].value, p.sim->report_precision );
     double e = util::round( pdata[ 2 ].error / 2, p.sim->report_precision );
 
-    mean.emplace_back( x, v );
-    range.emplace_back( x, v + e, v - e );
+    mean.push_back( std::make_pair(x, v ) );
+    range.push_back( highchart::data_triple_t(x, v + e, v - e ) );
   }
 
   ac.add_simple_series( "line", from_color, "Mean", mean );
@@ -1094,7 +1044,8 @@ bool chart::generate_raid_aps( highchart::bar_chart_t& bc, const sim_t& s,
           v.set( "name", p->name_str );
           v.set( "low", boxplot_data[ 0 ] );
           v.set( "q1", boxplot_data[ 1 ] );
-          v.set( "median", boxplot_data[ 2 ] );
+          v.set( "median", boxplot_data[ 5 ] );
+          v.set( "mean", boxplot_data[ 2 ] );
           v.set( "q3", boxplot_data[ 3 ] );
           v.set( "high", boxplot_data[ 4 ] );
           v.set( "color", c.dark( .4 ).str() );
@@ -1186,6 +1137,14 @@ bool chart::generate_raid_aps( highchart::bar_chart_t& bc, const sim_t& s,
   bc.set( "plotOptions.boxplot.whiskerWidth", 1 );
   bc.set( "plotOptions.boxplot.medianWidth", 1 );
   bc.set( "plotOptions.boxplot.pointWidth", 18 );
+  bc.set( "plotOptions.boxplot.tooltip.pointFormat",
+    "Maximum: {point.high}<br/>"
+    "Upper quartile: {point.q3}<br/>"
+    "Mean: {point.mean:,.1f}<br/>"
+    "Median: {point.median}<br/>"
+    "Lower quartile: {point.q1}<br/>"
+    "Minimum: {point.low}<br/>"
+  );
 
   // X-axis label formatter, fetches colors from a (chart-local) table, instead
   // of writing out span
@@ -1198,7 +1157,7 @@ bool chart::generate_raid_aps( highchart::bar_chart_t& bc, const sim_t& s,
       "'\xe2\x80\xa6';";
   xaxis_label += "}";
   xaxis_label +=
-      "return '<span style=\"color:' + this.chart.options.__colors[this.value] "
+      "return '<span style=\"color:' + this.chart.options.__colors['C_' + this.value.replace('.', '_')] "
       "+ ';\">' + formatted_name + '</span>';";
   xaxis_label += " }";
 
@@ -1251,7 +1210,7 @@ bool chart::generate_raid_aps( highchart::bar_chart_t& bc, const sim_t& s,
   {
     formatter +=
         "var fmt = '<span style=\"color:' + "
-        "this.series.chart.options.__colors[this.point.name] + ';\">';";
+        "this.series.chart.options.__colors['C_' + this.point.name.replace('.', '_')] + ';\">';";
     formatter +=
         "if (this.point.reldiff === undefined || this.point.reldiff === 0) { "
         "fmt += Highcharts.numberFormat(this.point.y, " +
@@ -1271,7 +1230,7 @@ bool chart::generate_raid_aps( highchart::bar_chart_t& bc, const sim_t& s,
   {
     formatter +=
         "return '<span style=\"color:' + "
-        "this.series.chart.options.__colors[this.point.name] + ';\">' + "
+        "this.series.chart.options.__colors['C_' + this.point.name.replace('.', '_')] + ';\">' + "
         "Highcharts.numberFormat(this.y, " +
         util::to_string( precision ) + ") + '</span>';";
     formatter += " }";
@@ -1534,8 +1493,8 @@ bool chart::generate_scale_factors( highchart::bar_chart_t& bc,
     double error_value = util::round(
         p.scaling_error[ metric ].get_stat( stat ), p.sim->report_precision );
     data.push_back( value );
-    error.emplace_back( value - fabs( error_value ),
-                        value + fabs( error_value ) );
+    error.push_back( std::make_pair( value - fabs( error_value ),
+                        value + fabs( error_value ) ) );
 
     std::string category_str = util::stat_type_abbrev( stat );
     category_str +=

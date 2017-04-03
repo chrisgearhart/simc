@@ -18,6 +18,7 @@ namespace consumable
   void hearty_feast( special_effect_t& );
   void lavish_suramar_feast( special_effect_t& );
   void pepper_breath( special_effect_t& );
+  void lemon_herb_filet( special_effect_t& );
 }
 
 namespace enchants
@@ -65,6 +66,7 @@ namespace item
   void deteriorated_construct_core( special_effect_t& );
   void eye_of_command( special_effect_t& );
   void bloodstained_hankerchief( special_effect_t& );
+  void majordomos_dinner_bell( special_effect_t& );
 
   // 7.0 Misc
   void darkmoon_deck( special_effect_t& );
@@ -97,6 +99,9 @@ namespace item
   void whispers_in_the_dark( special_effect_t&    );
   void nightblooming_frond( special_effect_t&     );
   void might_of_krosus( special_effect_t&         );
+
+  // 7.2.0 Dungeon
+  void dreadstone_of_endless_shadows( special_effect_t& );
 
   // Adding this here to check it off the list.
   // The sim builds it automatically.
@@ -828,19 +833,19 @@ struct fury_of_the_burning_sky_driver_t : public dbc_proc_callback_t
   }
 };
 
-struct solar_collapse_t : public debuff_t
+struct solar_collapse_t : public buff_t
 {
   action_t* damage_event;
 
   solar_collapse_t( const actor_pair_t& p, const special_effect_t& source_effect ) :
-    debuff_t( buff_creator_t( p, "solar_collapse", source_effect.driver() -> effectN( 1 ).trigger(), source_effect.item )
+    buff_t( buff_creator_t( p, "solar_collapse", source_effect.driver() -> effectN( 1 ).trigger(), source_effect.item )
                                   .duration( timespan_t::from_seconds( 3.0 ) ) ),
                                   damage_event( source -> find_action( "solar_collapse_damage" ) )
   { }
 
   void expire_override( int expiration_stacks, timespan_t remaining_duration ) override
   {
-    debuff_t::expire_override( expiration_stacks, remaining_duration );
+    buff_t::expire_override( expiration_stacks, remaining_duration );
     damage_event -> target = player;
     damage_event -> execute();
   }
@@ -935,19 +940,19 @@ struct thunder_ritual_impact_t : public spell_t
   }
 };
 
-struct thunder_ritual_t : public debuff_t
+struct thunder_ritual_t : public buff_t
 {
   action_t* damage_event;
 
   thunder_ritual_t( const actor_pair_t& p, const special_effect_t& source_effect ) :
-    debuff_t( buff_creator_t( p, "thunder_ritual", source_effect.driver() -> effectN( 1 ).trigger(), source_effect.item )
+    buff_t( buff_creator_t( p, "thunder_ritual", source_effect.driver() -> effectN( 1 ).trigger(), source_effect.item )
                                   .duration( timespan_t::from_seconds( 3.0 ) ) ),
                                   damage_event( source -> find_action( "thunder_ritual_damage" ) )
   {}
 
   void expire_override( int expiration_stacks, timespan_t remaining_duration ) override
   {
-    debuff_t::expire_override( expiration_stacks, remaining_duration );
+    buff_t::expire_override( expiration_stacks, remaining_duration );
     damage_event -> target = player;
     damage_event -> execute();
   }
@@ -1049,6 +1054,71 @@ void item::toe_knees_promise( special_effect_t& effect )
 {
   effect.execute_action = new flame_gale_driver_t( effect );
 }
+
+// Majordomo's Dinner Bell ==================================================
+
+struct majordomos_dinner_bell_t : proc_spell_t
+{
+  std::vector<stat_buff_t*> buffs;
+
+  majordomos_dinner_bell_t(const special_effect_t& effect) :
+    proc_spell_t("dinner_bell", effect.player, effect.player -> find_spell(230101), effect.item)
+  {
+    // Spell used for tooltips, game uses buffs 230102-230105 based on a script but not all are in DBC spell data
+    const spell_data_t* buff_spell = effect.player->find_spell(230102);
+    const double buff_amount = item_database::apply_combat_rating_multiplier(*effect.item,
+      buff_spell->effectN(1).average(effect.item)) * util::composite_karazhan_empower_multiplier(effect.player);
+
+    buffs =
+    {
+      stat_buff_creator_t(effect.player, "quite_satisfied_crit", buff_spell, effect.item)
+        .add_stat(STAT_CRIT_RATING, buff_amount),
+      stat_buff_creator_t(effect.player, "quite_satisfied_haste", buff_spell, effect.item)
+        .add_stat(STAT_HASTE_RATING, buff_amount),
+      stat_buff_creator_t(effect.player, "quite_satisfied_mastery", buff_spell, effect.item)
+        .add_stat(STAT_MASTERY_RATING, buff_amount),
+      stat_buff_creator_t(effect.player, "quite_satisfied_vers", buff_spell, effect.item)
+        .add_stat(STAT_VERSATILITY_RATING, buff_amount),
+    };
+  }
+
+  void execute() override
+  {
+    // The way this works, despite the tooltip, is that the buff matches your current food buff
+    // If you don't have a food buff, it is random
+    if(player->consumables.food)
+    {
+      const stat_buff_t* food_buff = dynamic_cast<stat_buff_t*>(player->consumables.food);
+      if (food_buff && food_buff->stats.size() > 0)
+      {
+        const stat_e food_stat = food_buff->stats.front().stat;
+        const auto it = range::find_if(buffs, [food_stat](const stat_buff_t* buff) {
+          if (buff->stats.size() > 0)
+            return buff->stats.front().stat == food_stat;
+          else
+            return false;
+        });
+
+        if (it != buffs.end())
+        {
+          (*it)->trigger();
+          return;
+        }
+      }
+    }
+
+    // We didn't find a matching food buff, so pick randomly
+    const int selected_buff = (int)(player->sim->rng().real() * buffs.size());
+    buffs[selected_buff]->trigger();
+  }
+};
+
+void item::majordomos_dinner_bell(special_effect_t& effect)
+{
+  effect.execute_action = new majordomos_dinner_bell_t( effect );
+}
+
+
 // Memento of Angerboda =====================================================
 
 struct memento_callback_t : public dbc_proc_callback_t
@@ -1161,7 +1231,7 @@ struct haymaker_driver_t : public dbc_proc_callback_t
 {
   struct haymaker_event_t;
 
-  debuff_t* debuff;
+  buff_t* debuff;
   const special_effect_t& effect;
   double multiplier;
   haymaker_event_t* accumulator;
@@ -1171,10 +1241,10 @@ struct haymaker_driver_t : public dbc_proc_callback_t
   {
     haymaker_damage_t* action;
     haymaker_driver_t* callback;
-    debuff_t* debuff;
+    buff_t* debuff;
     double damage;
 
-    haymaker_event_t( haymaker_driver_t* cb, haymaker_damage_t* a, debuff_t* d ) :
+    haymaker_event_t( haymaker_driver_t* cb, haymaker_damage_t* a, buff_t* d ) :
       event_t( *a -> player, a -> data().effectN( 1 ).period() ), action( a ), callback( cb ), debuff( d ), damage( 0 )
     {
     }
@@ -1528,6 +1598,11 @@ void item::might_of_krosus( special_effect_t& effect )
       split_aoe_damage = true;
     }
 
+    double composite_crit_chance() const override
+    {
+      return 1.0; // Always crits
+    }
+
     void execute() override
     {
       proc_attack_t::execute();
@@ -1563,6 +1638,9 @@ void item::pharameres_forbidden_grimoire( special_effect_t& effect )
       background = may_crit = true;
       aoe = -1;
       base_dd_min = base_dd_max = data().effectN( 1 ).average( effect.item );
+      if ( effect.player -> type == ( WARRIOR || ROGUE || PALADIN || DEMON_HUNTER || DEATH_KNIGHT || MONK ) ||
+           effect.player -> specialization() == ( HUNTER_SURVIVAL || SHAMAN_ENHANCEMENT || DRUID_FERAL || DRUID_GUARDIAN ) ) // Melee users always deal half damage even if they run 20 yards out to use this trinket. 
+        base_multiplier = 0.5;
     }
 
     double composite_target_multiplier( player_t* t ) const override
@@ -1596,7 +1674,6 @@ void item::pharameres_forbidden_grimoire( special_effect_t& effect )
 
   struct orb_of_destruction_t : public spell_t
   {
-    double min_range;
     orb_of_destruction_impact_t* impact;
     orb_of_destruction_t( const special_effect_t& effect ) :
       spell_t( "orb_of_destruction", effect.player, effect.driver() ),
@@ -1608,23 +1685,16 @@ void item::pharameres_forbidden_grimoire( special_effect_t& effect )
       add_child( impact );
     }
 
-    void init() override
-    {
-      spell_t::init();
-      if ( player -> base.distance < 20 )
-        sim ->errorf( "Pharamere's Forbidden Grimoire can only be used when more than 20 yards away from the target. This warning will display when a melee tries to equip the trinket." );
-    }
-
     bool ready() override
     {
-      if ( player -> get_player_distance( *target ) < min_range )
+      if ( player -> get_player_distance( *target ) < 14 )
       {
         return false;
       }
       return spell_t::ready();
     }
 
-    void execute()
+    void execute() override
     {
       impact -> target = target;
       impact -> execute();
@@ -1643,6 +1713,55 @@ void item::pharameres_forbidden_grimoire( special_effect_t& effect )
   }
 
   effect.execute_action = a;
+}
+
+// Dreadstone of Endless Shadows ============================================
+
+struct dreadstone_proc_cb_t : public dbc_proc_callback_t
+{
+  const std::vector<stat_buff_t*> buffs;
+
+  dreadstone_proc_cb_t( const special_effect_t& effect, const std::vector<stat_buff_t*>& buffs_ ) :
+    dbc_proc_callback_t( effect.item, effect ), buffs( buffs_ )
+  { }
+
+  void execute( action_t* /* a */, action_state_t* /* state */ ) override
+  {
+    size_t buff_index = static_cast<size_t>( rng().range( 0, buffs.size() ) );
+    buffs[ buff_index ] -> trigger();
+  }
+};
+
+void item::dreadstone_of_endless_shadows( special_effect_t& effect )
+{
+  auto p = effect.player;
+
+  auto amount = item_database::apply_combat_rating_multiplier( *effect.item,
+      effect.driver() -> effectN( 2 ).average( effect.item ) );
+
+  // Buffs
+  auto crit = debug_cast<stat_buff_t*>( buff_t::find( p, "sign_of_the_hippo" ) );
+  if ( crit == nullptr )
+  {
+    crit = stat_buff_creator_t( p, "sign_of_the_hippo", p -> find_spell( 225749 ), effect.item )
+      .add_stat( STAT_CRIT_RATING, amount );
+  }
+
+  auto mastery = debug_cast<stat_buff_t*>( buff_t::find( p, "sign_of_the_hare" ) );
+  if ( mastery == nullptr )
+  {
+    mastery = stat_buff_creator_t( p, "sign_of_the_hare", p -> find_spell( 225752 ), effect.item )
+      .add_stat( STAT_MASTERY_RATING, amount );
+  }
+
+  auto haste = debug_cast<stat_buff_t*>( buff_t::find( p, "sign_of_the_dragon" ) );
+  if ( haste == nullptr )
+  {
+    haste = stat_buff_creator_t( p, "sign_of_the_dragon", p -> find_spell( 225753 ), effect.item )
+      .add_stat( STAT_HASTE_RATING, amount );
+  }
+
+  new dreadstone_proc_cb_t( effect, { crit, mastery, haste } );
 }
 
 // Tirathon's Betrayal ======================================================
@@ -1834,14 +1953,14 @@ struct poisoned_dreams_damage_driver_t : public dbc_proc_callback_t
 
 };
 // Poisoned Dreams debuff to control poisoned_dreams_driver_t
-struct poisoned_dreams_t : public debuff_t
+struct poisoned_dreams_t : public buff_t
 {
   poisoned_dreams_damage_driver_t* driver_cb;
   action_t* damage_spell;
   special_effect_t* effect;
 
   poisoned_dreams_t( const actor_pair_t& p, const special_effect_t& source_effect ) :
-    debuff_t( buff_creator_t( p, "poisoned_dreams", source_effect.driver() -> effectN( 1 ).trigger(), source_effect.item )
+    buff_t( buff_creator_t( p, "poisoned_dreams", source_effect.driver() -> effectN( 1 ).trigger(), source_effect.item )
                               .activated( false )
                               .period( timespan_t::from_seconds( 2.0 ) ) ),
                               damage_spell( p.source -> find_action( "poisoned_dreams_damage" ) )
@@ -1861,21 +1980,21 @@ struct poisoned_dreams_t : public debuff_t
 
   void expire_override( int expiration_stacks, timespan_t remaining_duration ) override
   {
-    debuff_t::expire_override( expiration_stacks, remaining_duration );
+    buff_t::expire_override( expiration_stacks, remaining_duration );
 
     driver_cb -> deactivate();
   }
 
   void execute( int stacks, double value, timespan_t duration ) override
   {
-    debuff_t::execute( stacks, value, duration );
+    buff_t::execute( stacks, value, duration );
 
     driver_cb -> activate();
   }
 
   void reset() override
   {
-    debuff_t::reset();
+    buff_t::reset();
 
     driver_cb -> deactivate();
   }
@@ -2063,6 +2182,16 @@ void item::draught_of_souls( special_effect_t& effect )
       {
         damage = new felcrazed_rage_t( effect );
         add_child( damage );
+      }
+
+      switch ( effect_.player->specialization() ) { // Half effectiveness for tanks
+        case WARRIOR_PROTECTION:
+        case PALADIN_PROTECTION:
+        case DEATH_KNIGHT_BLOOD:
+        case MONK_BREWMASTER:
+        case DRUID_GUARDIAN:
+        case DEMON_HUNTER_VENGEANCE:
+          damage->base_dd_multiplier *= 0.5;
       }
     }
 
@@ -3023,18 +3152,18 @@ void item::unstable_horrorslime( special_effect_t& effect )
 
 // Portable Manacracker =====================================================
 
-struct volatile_magic_debuff_t : public debuff_t
+struct volatile_magic_debuff_t : public buff_t
 {
   action_t* damage;
 
   volatile_magic_debuff_t( const special_effect_t& effect, actor_target_data_t& td ) :
-    debuff_t( buff_creator_t( td, "volatile_magic", effect.trigger() ) ),
+    buff_t( buff_creator_t( td, "volatile_magic", effect.trigger() ) ),
     damage( effect.player -> find_action( "withering_consumption" ) )
   {}
 
   bool trigger( int stacks, double value, double chance, timespan_t duration ) override
   {
-    bool s = debuff_t::trigger( stacks, value, chance, duration );
+    bool s = buff_t::trigger( stacks, value, chance, duration );
 
     if ( current_stack == max_stack() )
     {
@@ -3211,18 +3340,18 @@ void item::spontaneous_appendages( special_effect_t& effect )
 
 struct wriggling_sinew_constructor_t : public item_targetdata_initializer_t
 {
-  struct maddening_whispers_debuff_t : public debuff_t
+  struct maddening_whispers_debuff_t : public buff_t
   {
     action_t* action;
 
     maddening_whispers_debuff_t( const special_effect_t& effect, actor_target_data_t& td ) :
-      debuff_t( buff_creator_t( td, "maddening_whispers", effect.trigger(), effect.item ) ),
+      buff_t( buff_creator_t( td, "maddening_whispers", effect.trigger(), effect.item ) ),
       action( effect.player -> find_action( "maddening_whispers" ) )
     {}
 
     void expire_override( int stacks, timespan_t dur ) override
     {
-      debuff_t::expire_override( stacks, dur );
+      buff_t::expire_override( stacks, dur );
 
       // Schedule an execute, but snapshot state right now so we can apply the stack multiplier.
       action_state_t* s   = action -> get_state();
@@ -3417,20 +3546,15 @@ void item::convergence_of_fates( special_effect_t& effect )
 {
   switch ( effect.player -> specialization() )
   {
-    // Blizzard could have explained how they nerfed/buffed these rppm values a lot better by just saying what the the end result is.
-    // This is how I (Collision) calculated the following values:
-    // Ret Paladin
-    // with Avenging Wrath: +250% proc rate
-    // with Crusade : +25 % proc rate
-    // When they say +250% proc rate, they mean +250% based on whatever the rppm was on 2017/01/23.
-    // For Ret, this was 1.2. When the hotfixes hit, the rppm for ret went to 3, which is actually the 250% gain for Avenging Wrath, so we don't have to add any special handling for it.
-    // Ex : 1.2 * 2.5 = 3.0
-    // In order to find the value for Crusade, we do 1.2 * 1.25 = 1.5, we do have to add in special handling for that.
-
   case PALADIN_RETRIBUTION:
     if ( player_talent( effect.player, "Crusade" ) )
     {
       effect.ppm_ = -1.5;
+      effect.rppm_modifier_ = 1.0;
+    }
+    else
+    {
+      effect.ppm_ = -4.2; //Blizz fudged up the spelldata for ret, 4.2 is the baseline, not 3. 
       effect.rppm_modifier_ = 1.0;
     }
     break;
@@ -3660,58 +3784,87 @@ struct cinidaria_the_symbiote_damage_t : public attack_t
   }
 };
 
-struct cinidaria_the_symbiote_cb_t : public dbc_proc_callback_t
-{
-  cinidaria_the_symbiote_damage_t* damage;
-  int health_percentage;
-  double damage_multiplier;
-
-  cinidaria_the_symbiote_cb_t( const special_effect_t& effect ) :
-    dbc_proc_callback_t( effect.player, effect ),
-    damage( new cinidaria_the_symbiote_damage_t( effect.player ) )
-  {
-    damage_multiplier = effect.driver()->effectN(1).percent();
-    health_percentage = effect.driver()->effectN(2).base_value();
-  }
-
-  void trigger( action_t* a, void* call_data ) override
-  {
-    auto state = reinterpret_cast<action_state_t*>( call_data );
-    if ( state -> target -> health_percentage() < health_percentage )
-    {
-      return;
-    }
-
-    if ( state -> result_amount <= 0 )
-    {
-      return;
-    }
-
-    // Ensure this is an attack
-    if ( state -> action -> type != ACTION_SPELL && state -> action -> type != ACTION_ATTACK )
-    {
-      return;
-    }
-
-    dbc_proc_callback_t::trigger( a, call_data );
-  }
-
-  void execute( action_t* /* a */, action_state_t* state ) override
-  {
-    auto amount = state -> result_amount * damage_multiplier;
-    damage -> target = state -> target;
-    damage -> base_dd_min = damage -> base_dd_max = amount;
-    damage -> execute();
-  }
-};
-
 struct cinidaria_the_symbiote_t : public class_scoped_callback_t
 {
   cinidaria_the_symbiote_t() : class_scoped_callback_t( { DEMON_HUNTER, DRUID, MONK, ROGUE } )
   { }
 
+  // Cinidaria needs special handling on the modeling. Since it is allowed to proc from nearly any
+  // damage, we need to circumvent the normal "special effect" system in Simulationcraft. Instead,
+  // hook Cinidaria into the outgoing damage assessor pipeline, since all outgoing damage resolution
+  // of a source actor is done through it.
+  //
+  // NOTE NOTE NOTE: This also requires that if there is some (direct or periodic) damage that is
+  // not allowed to generate Cinidaria damage, the spell id of such spells is listed below in the
+  // "spell_blacklist" map.
+  //
   void initialize( special_effect_t& effect ) override
-  { new cinidaria_the_symbiote_cb_t( effect ); }
+  {
+    // Vector of blacklisted spell ids that cannot proc Cinidaria.
+    const std::unordered_map<unsigned, bool> spell_blacklist = {
+      { 207694, true }, // Symbiote Strike (Cinidaria itself)
+      { 191259, true }, // Mark of the Hidden Satyr
+      { 191380, true }, // Mark of the Distant Army
+      { 220893, true }, // Soul Rip (Subtlety Rogue Akaari pet)
+    };
+
+    // Health percentage threshold and damage multiplier
+    const double threshold = effect.driver() -> effectN( 2 ).base_value();
+    const double multiplier = effect.driver() -> effectN( 1 ).percent();
+
+    // Damage spell
+    const auto spell = new cinidaria_the_symbiote_damage_t( effect.player );
+
+    // Install an outgoing damage assessor that triggers Cinidaria after the target damage has been
+    // resolved. This ensures most of the esoteric mitigation mechanisms that the sim might have are
+    // also resolved, and that state -> result_amount will hold the "final actual damage" of the
+    // ability.
+    effect.player -> assessor_out_damage.add( assessor::TARGET_DAMAGE + 1,
+      [ spell_blacklist, threshold, multiplier, spell ]( dmg_e, action_state_t* state )
+      {
+        const auto source_action = state -> action;
+        const auto target = state -> target;
+
+        // Must be a reasonably valid action (a harmful spell or attack)
+        if ( ! source_action -> harmful ||
+             ( source_action -> type != ACTION_SPELL && source_action -> type != ACTION_ATTACK ) )
+        {
+          return assessor::CONTINUE;
+        }
+
+        // Must do damage
+        if ( state -> result_amount == 0 )
+        {
+          return assessor::CONTINUE;
+        }
+
+        // Target must be equal or above threshold health%
+        if ( target -> health_percentage() < threshold )
+        {
+          return assessor::CONTINUE;
+        }
+
+        // Spell cannot be blacklisted
+        if ( spell_blacklist.find( source_action -> id ) != spell_blacklist.end() )
+        {
+          return assessor::CONTINUE;
+        }
+
+        if ( source_action -> sim -> debug )
+        {
+          source_action -> sim -> out_debug.printf( "%s cinidaria_the_symbiote proc from %s",
+            spell -> player -> name(), source_action -> name() );
+        }
+
+        // All ok, trigger the damage
+        spell -> target = target;
+        spell -> base_dd_min = spell -> base_dd_max = state -> result_amount * multiplier;
+        spell -> execute();
+
+        return assessor::CONTINUE;
+      }
+    );
+  }
 };
 
 // Combined legion potion action ============================================
@@ -3763,8 +3916,7 @@ void consumable::potion_of_the_old_war( special_effect_t& effect )
   proc -> initialize();
   proc -> deactivate();
 
-  effect.custom_buff = buff_creator_t( effect.player, effect.name() )
-    .spell( effect.driver() )
+  effect.custom_buff = buff_creator_t( effect.player, effect.name(), effect.driver() )
     .stack_change_callback( [ proc ]( buff_t*, int, int new_ ) {
       if ( new_ == 1 ) proc -> activate();
       else             proc -> deactivate();
@@ -3815,8 +3967,7 @@ void consumable::potion_of_deadly_grace( special_effect_t& effect )
     duration += timespan_t::from_seconds( 5 );
   }
 
-  effect.custom_buff = buff_creator_t( effect.player, effect.name() )
-    .spell( effect.driver() )
+  effect.custom_buff = buff_creator_t( effect.player, effect.name(), effect.driver() )
     .stack_change_callback( [ proc ]( buff_t*, int, int new_ ) {
       if ( new_ == 1 ) proc -> activate();
       else             proc -> deactivate();
@@ -3883,6 +4034,20 @@ void consumable::lavish_suramar_feast( special_effect_t& effect )
   }
 
   effect.stat_amount = effect.player -> find_spell( effect.trigger_spell_id ) -> effectN( 1 ).average( effect.player );
+}
+
+// Lemon Herb Filet =========================================================
+
+void consumable::lemon_herb_filet( special_effect_t& effect )
+{
+  double value = effect.driver() -> effectN( 1 ).percent();
+
+  buff_t* dmf_well_fed = buff_creator_t( effect.player, "lemon_herb_filet", effect.driver() )
+    .default_value( effect.player -> race == race_e::RACE_PANDAREN ? 2 * value : value )
+    .add_invalidate( CACHE_VERSATILITY );
+
+  effect.custom_buff = dmf_well_fed;
+  effect.player -> buffs.dmf_well_fed = dmf_well_fed;
 }
 
 // Pepper Breath (generic) ==================================================
@@ -4366,6 +4531,7 @@ void unique_gear::register_special_effects_x7()
   register_special_effect( 230236, item::deteriorated_construct_core    );
   register_special_effect( 230150, item::eye_of_command                 );
   register_special_effect( 230011, item::bloodstained_hankerchief       );
+  register_special_effect( 230101, item::majordomos_dinner_bell         );
 
   /* Legion 7.0 Raid */
   // register_special_effect( 221786, item::bloodthirsty_instinct  );
@@ -4390,6 +4556,9 @@ void unique_gear::register_special_effects_x7()
   register_special_effect( 225135, item::nightblooming_frond     );
   register_special_effect( 225132, item::might_of_krosus         );
   register_special_effect( 225133, item::pharameres_forbidden_grimoire );
+
+  /* Legion 7.2.0 Dungeon */
+  register_special_effect( 238498, item::dreadstone_of_endless_shadows );
 
   /* Legion 7.0 Misc */
   register_special_effect( 188026, item::infernal_alchemist_stone       );
@@ -4436,6 +4605,7 @@ void unique_gear::register_special_effects_x7()
   register_special_effect( 225606, consumable::pepper_breath );
   register_special_effect( 225601, consumable::pepper_breath );
   register_special_effect( 201336, consumable::pepper_breath );
+  register_special_effect( 185736, consumable::lemon_herb_filet );
 }
 
 void unique_gear::register_hotfixes_x7()

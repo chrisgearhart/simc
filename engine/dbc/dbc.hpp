@@ -31,7 +31,7 @@ struct item_t;
 
 const unsigned NUM_SPELL_FLAGS = 12;
 const unsigned NUM_CLASS_FAMILY_FLAGS = 4;
-#define SC_USE_PTR 1
+#define SC_USE_PTR 0
 
 struct stat_data_t
 {
@@ -1502,6 +1502,7 @@ public:
   // Artifact stuff
   unsigned artifact_by_spec( specialization_e spec ) const;
   std::vector<const artifact_power_data_t*> artifact_powers( unsigned artifact_id ) const;
+  const artifact_power_data_t* artifact_power( unsigned power_id ) const;
   std::vector<const artifact_power_rank_t*> artifact_power_ranks( unsigned power_id ) const;
   unsigned artifact_power_spell_id( specialization_e spec, unsigned power_index, unsigned rank ) const;
   std::pair<unsigned, unsigned> artifact_relic_rank_index( unsigned artifact_id, unsigned relic_item_id ) const;

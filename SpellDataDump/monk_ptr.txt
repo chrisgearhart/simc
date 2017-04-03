@@ -1,4 +1,4 @@
-SimulationCraft 715-02 for World of Warcraft 7.2.0 PTR (wow build 23436, git build 197aafa)
+SimulationCraft 715-02 for World of Warcraft 7.2.0 PTR (wow build 23578, git build 8142444)
 
 Name             : Dual Wield (Passive) (id=674) [Passive] 
 Class            : Frost Warrior, Hunter, Rogue, Death Knight, Monk, Demon Hunter
@@ -37,7 +37,7 @@ Effects          :
 #2 (id=140019)   : Unknown effect type (114)
                    Base Value: 0 | Scaled Value: 0 | SP Coefficient: 1.00000 | Mechanic: Unknown(133) | Target: Enemy(6)
 #3 (id=140020)   : Apply Aura (6) | Taunt (11)
-                   Base Value: 200 | Scaled Value: 200 | Mechanic: Unknown(133) | Target: Enemy(6)
+                   Base Value: 400 | Scaled Value: 400 | Mechanic: Unknown(133) | Target: Enemy(6)
 Description      : Your pet growls at the target, generating threat, taunting the target to attack the pet, and increasing threat that your pet generates against the target for $d.
 Tooltip          : Taunted.
 
@@ -492,7 +492,7 @@ Attributes       : ........ ........ ..x..... ........   ........ .x...... .....
                  : ........ ........ ........ ........   ....x... ........ ........ ........ 
 Effects          :
 #1 (id=108867)   : School Damage: physical (2)
-                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 3.85000 | Chain Targets: 1 | Target: Enemy(6)
+                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 3.85000 | Chain Multiplier: 0 | Chain Targets: 1 | Target: Enemy(6)
 Description      : Kick with a blast of Chi energy, dealing $s1 Physical damage.
 Variables        : $stnc=$?a103985[${1.05*(1+$@versadmg)}][${1.0*(1+$@versadmg)}]
 $dwm=$?a108561|a115697[${1}][${0.857143}]
@@ -556,9 +556,9 @@ Duration         : 1.5 seconds
 Affecting spells : Stance of the Fierce Tiger (103985), Stagger (115069), Mistweaver Monk (137024), Lucidity (137331), Serenity (152173), Mana Tea (197908), 
 Attributes       : ....x... ........ x.x..... ........   ..x...x. ........ ........ ........ 
                  : ........ ........ ........ ........   ........ .....x.. ........ ........ 
-                 : ........ ........ ........ ........   ........ .x...... ........ ........ 
+                 : ........ ........ ........ ........   ........ .x...x.. ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ....x... .x....x. ........   ........ ........ ........ ........ 
+                 : ........ ....x... .x...... ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   .x..x... ........ ........ ........ 
                  : Channeled (34), Channeled (38)
 Effects          :
@@ -821,7 +821,7 @@ Attributes       : ....x.x. ........ x.x..... x..x.x.x   ........ ..x..... .x...
                  : ........ ........ .....x.. ........   ........ ........ ........ ........ 
                  : ........ ....x... ......x. ........   ........ ........ ........ ......x. 
                  : ........ ....x... ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ....x... 
                  : Passive (6), Cannot cancel aura (31)
 Effects          :
 #1 (id=128720)   : Apply Aura (6) | Dummy (4)
@@ -924,7 +924,7 @@ Range            : 5 yards
 GCD              : 1.5 seconds
 Duration         : 8 seconds
 Cooldown         : 120 seconds
-Affecting spells : Stance of the Fierce Tiger (103985), Stagger (115069), Mistweaver Monk (137024), Scroll of Touch of Death (168797), Hidden Master's Forbidden Touch (213114)
+Affecting spells : Stance of the Fierce Tiger (103985), Stagger (115069), Mistweaver Monk (137024), Scroll of Touch of Death (168797), Hidden Master's Forbidden Touch (213112), Hidden Master's Forbidden Touch (213114)
 Attributes       : ....x... ........ x.x..x.. ........   ........ .x...... ........ ...x.... 
                  : ........ ........ ........ .....x..   ........ ..x..... ........ ........ 
                  : ........ x....... ........ .....x..   ........ ........ .......x .....x.. 
@@ -958,11 +958,7 @@ Attributes       : ........ ........ ........ ...x....   .......x ........ .....
 Effects          :
 #1 (id=128771)   : Dummy (3)
                    Base Value: 7 | Scaled Value: 7 | Target: Unknown(25)
-Description      : A wave of Chi energy flows through friends and foes, dealing $<damage> Nature damage or $<healing> healing. Bounces up to $115098s1 times to targets within $132466a2 yards.
-Variables        : $dmgMult=$?a103985[${1.05}][${1.0}]
-$healMult=$?a115070[${1.2}][${1.0}]
-$damage=${$<dmgMult>*$AP*0.867*(1+$@versadmg)}
-$healing=${$<healMult>*$AP*0.867*(1+$@versadmg)}
+Description      : A wave of Chi energy flows through friends and foes, dealing $132467s1 Nature damage or $132463s1 healing. Bounces up to $s1 times to targets within $132466a2 yards.
 
 Name             : Renewing Mist (id=115151) [Scaling Spell (6), Spell Family (53)] 
 Class            : Mistweaver Monk
@@ -975,7 +971,7 @@ Velocity         : 30 yards/sec
 Cooldown         : 8 seconds
 Affecting spells : Thunder Focus Tea (116680), Enveloping Mist (124682), Lucidity (137331), Chi-ji's Guidance (167717), Extend Life (185158), Mana Tea (197908), Extended Healing (199372), The Mists of Sheilun (199888), Item - Monk T19 Mistweaver 2P Bonus (211418)
 Attributes       : ........ ........ ..x..... ........   ........ ........ ........ ........ 
-                 : ........ ........ .x...... ........   ........ .x...... ........ ..x...x. 
+                 : ........ ........ ........ ........   ........ .x...... ........ ..x...x. 
                  : ........ ........ ........ ........   ........ .....x.. ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ .x..x... ........ x.......   ...x.... ........ ........ ........ 
@@ -1322,23 +1318,6 @@ Effects          :
 Description      : Grievously wounds the target, reducing the effectiveness of any healing received for $115804d.
 Tooltip          : Healing effects received reduced by $w1%.
 
-Name             : Thunderfist (id=116007) 
-Class            : Monk
-School           : Nature
-Cooldown         : 5 seconds
-Category         : 1152
-Category Cooldown: 5 seconds
-Attributes       : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-Effects          :
-#1 (id=130572)   : Weapon Damage% (31)
-                   Base Value: 110 | Scaled Value: 1.1 | Radius: 0 - 5 yards | Target: At Caster(22) -> AOE enemy(15)
-Description      : Strikes all nearby enemies with thunder, inflicting Nature damage.
-
 Name             : Afterlife (id=116092) [Scaling Spell (6), Spell Family (53), Passive] 
 Class            : Windwalker Monk
 School           : Physical
@@ -1410,7 +1389,7 @@ Effects          :
 #1 (id=131037)   : Unknown effect type (114)
                    Base Value: 0 | Scaled Value: 0 | SP Coefficient: 1.00000 | Target: Enemy(6)
 #2 (id=131038)   : Apply Aura (6) | Taunt (11)
-                   Base Value: 200 | Scaled Value: 200 | Target: Enemy(6)
+                   Base Value: 400 | Scaled Value: 400 | Target: Enemy(6)
 #3 (id=131039)   : Apply Aura (6) | Increase Speed% (31)
                    Base Value: 50 | Scaled Value: 50 | Target: Enemy(6)
 Description      : $@spelldesc115546
@@ -1850,7 +1829,7 @@ Effects          :
 #1 (id=135217)   : Unknown effect type (114)
                    Base Value: 0 | Scaled Value: 0 | SP Coefficient: 1.00000 | Radius: 0 - 10 yards | Target: Unknown(63) -> AOE enemy (instant)(16)
 #2 (id=135218)   : Apply Aura (6) | Taunt (11)
-                   Base Value: 200 | Scaled Value: 200 | Radius: 0 - 10 yards | Target: Unknown(63) -> AOE enemy (instant)(16)
+                   Base Value: 400 | Scaled Value: 400 | Radius: 0 - 10 yards | Target: Unknown(63) -> AOE enemy (instant)(16)
 #3 (id=135219)   : Apply Aura (6) | Increase Speed% (31)
                    Base Value: 50 | Scaled Value: 50 | Radius: 0 - 10 yards | Target: Unknown(63) -> AOE enemy (instant)(16)
 Description      : $@spelldesc115546
@@ -2391,7 +2370,7 @@ Effects          :
                    Base Value: 0 | Scaled Value: 0 | Misc Value: 1316 | Target: Custom(18)
 #2 (id=201318)   : Unknown effect type (179)
                    Base Value: 0 | Scaled Value: 0 | Misc Value: 1315 | Target: Custom(18)
-Description      : Hurls a torrent of Chi energy up to 40 yds forward, dealing $<damage> Nature damage to all enemies, and $<healing> healing to the Monk and all allies in its path.$?c1[
+Description      : Hurls a torrent of Chi energy up to 40 yds forward, dealing $148135s1 Nature damage to all enemies, and $130654s1 healing to the Monk and all allies in its path.$?c1[
 
 Casting Chi Burst does not prevent avoiding attacks.][]
 Variables        : $dmgMult=$?a103985[${1.1}][${1.0}]
@@ -2511,10 +2490,6 @@ Effects          :
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 #3 (id=344130)   : Apply Aura (6) | Modify All Haste% (193)
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
-#4 (id=357677)   : Apply Aura (6) | Unknown effect sub type (129)
-                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
-#5 (id=357678)   : Apply Aura (6) | Modify Damage Taken% (87)
-                   Base Value: 0 | Scaled Value: 0 | Misc Value: 0x7e | Target: Self(1)
 Description      : $@spelldesc124255
 Tooltip          : $w1 damage is being staggered every $124255t1 sec.
 
@@ -2539,10 +2514,6 @@ Effects          :
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 #3 (id=344131)   : Apply Aura (6) | Modify All Haste% (193)
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
-#4 (id=357679)   : Apply Aura (6) | Unknown effect sub type (129)
-                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
-#5 (id=357680)   : Apply Aura (6) | Modify Damage Taken% (87)
-                   Base Value: 0 | Scaled Value: 0 | Misc Value: 0x7e | Target: Self(1)
 Description      : $@spelldesc124255
 Tooltip          : $w1 damage is being staggered every $124255t1 sec.
 
@@ -2567,10 +2538,6 @@ Effects          :
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 #3 (id=344132)   : Apply Aura (6) | Modify All Haste% (193)
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
-#4 (id=357681)   : Apply Aura (6) | Unknown effect sub type (129)
-                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
-#5 (id=357682)   : Apply Aura (6) | Modify Damage Taken% (87)
-                   Base Value: 0 | Scaled Value: 0 | Misc Value: 0x7e | Target: Self(1)
 Description      : $@spelldesc124255
 Tooltip          : $w1 damage is being staggered every $124255t1 sec.
 
@@ -2687,7 +2654,7 @@ Effects          :
                    Base Value: 1 | Scaled Value: 1 | SP Coefficient: 1.65000 | Target: Friend(21)
 #2 (id=290817)   : Apply Aura (6) | Unknown effect sub type (283)
                    Base Value: 0 | Scaled Value: 0 | Target: Friend(21)
-                   Affected Spells: Renewing Mist (115151), Soothing Mist (115175), Revival (115310), Vivify (116670), Effuse (116694), Renewing Mist (119611), Chi Burst (130654), Refreshing Jade Wind (162530), Essence Font (191840), Gust of Mists (191894), Mistwalk (197945), Zen Pulse (198487), Sheilun's Gift (205406), Soothing Mist (209525), Sheilun's Gift (214483)
+                   Affected Spells: Renewing Mist (115151), Soothing Mist (115175), Revival (115310), Vivify (116670), Effuse (116694), Renewing Mist (119611), Chi Burst (130654), Refreshing Jade Wind (162530), Essence Font (191840), Gust of Mists (191894), Zen Pulse (198487), Sheilun's Gift (205406), Soothing Mist (209525), Sheilun's Gift (214483)
 Description      : Wraps the target in healing mists, healing for $o1 over $d$?a231605[, and increasing healing received from your other spells by $m2%][].
 Tooltip          : Heals $w1 every $t1 sec.
 Healing received from the Monk increased by $m2%.
@@ -3112,7 +3079,7 @@ Attributes       : ........ ........ ........ x..x....   ...x.x.x ........ .....
                  : Does not break stealth (37), Not a proc (105)
 Effects          :
 #1 (id=168072)   : Direct Heal (10)
-                   Base Value: 1 | Scaled Value: 0 (avg=1) | Target: Unknown(25)
+                   Base Value: 0 | Scaled Value: 0 (avg=1) | AP Coefficient: 4.12500 | Target: Unknown(25)
 Description      : $@spelldesc123986
 
 Name             : Chi Wave (id=132463) [Spell Family (53)] 
@@ -3130,7 +3097,7 @@ Attributes       : ........ ........ ..x....x x..x....   .....x.x ........ .....
                  : Does not break stealth (37), Not a proc (105)
 Effects          :
 #1 (id=171555)   : Direct Heal (10)
-                   Base Value: 1 | Scaled Value: 1 | Target: Unknown(25)
+                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 0.86700 | Target: Unknown(25)
 Description      : $@spelldesc115098
 
 Name             : Chi Wave (id=132466) [Spell Family (53)] 
@@ -3170,7 +3137,7 @@ Attributes       : ........ ........ ..x....x x..x....   .....x.x ........ .....
                  : Does not break stealth (37), Not a proc (105)
 Effects          :
 #1 (id=171561)   : School Damage: nature (2)
-                   Base Value: 1 | Scaled Value: 1 | Target: Unknown(25)
+                   Base Value: 1 | Scaled Value: 1 | AP Coefficient: 0.86700 | Target: Unknown(25)
 #2 (id=171562)   : Apply Aura (6) | Dummy (4)
                    Base Value: 0 | Scaled Value: 0 | Target: Unknown(25)
 Description      : $@spelldesc115098
@@ -3280,8 +3247,8 @@ Effects          :
                    Base Value: -50 | Scaled Value: -50 | Misc Value: 3 | Misc Value 2: 0xf8 | Target: Self(1)
 #10 (id=260841)   : Apply Aura (6) | Unknown effect sub type (218)
                    Base Value: -40 | Scaled Value: -40 | Misc Value: 3 | Misc Value 2: 0x114 | Target: Self(1)
-#11 (id=260842)   : Apply Aura (6) | Dummy (4)
-                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
+#11 (id=260842)   : Apply Aura (6) | Unknown effect sub type (218)
+                   Base Value: -50 | Scaled Value: -50 | Misc Value: 3 | Misc Value 2: 0x121 | Target: Self(1)
 #12 (id=260843)   : Apply Aura (6) | Dummy (4)
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 #13 (id=260844)   : Apply Aura (6) | Dummy (4)
@@ -3291,6 +3258,8 @@ Effects          :
 #15 (id=260846)   : Apply Aura (6) | Dummy (4)
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 #16 (id=362030)   : Apply Aura (6) | Dummy (4)
+                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
+#17 (id=368362)   : Apply Aura (6) | Dummy (4)
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 
 Name             : Mistweaver Monk (id=137024) [Spell Family (53), Passive, Hidden] 
@@ -3437,7 +3406,7 @@ Class            : Windwalker Monk
 School           : Nature
 Spell Level      : 50
 Duration         : 15 seconds
-Cooldown         : 1 seconds
+Cooldown         : 16 seconds
 Charges          : 1 (90 seconds cooldown)
 Category         : 1592
 Stacks           : 2 maximum
@@ -3506,7 +3475,7 @@ Attributes       : ........ ........ ........ x..x....   ...x.x.x ........ .....
                  : Does not break stealth (37), Not a proc (105)
 Effects          :
 #1 (id=201313)   : School Damage: nature (2)
-                   Base Value: 1 | Scaled Value: 1 | Target: Unknown(25)
+                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 4.12500 | Target: Unknown(25)
 Description      : $@spelldesc123986
 
 Name             : Rushing Jade Wind (id=148187) [Spell Family (53)] 
@@ -3688,7 +3657,7 @@ Effects          :
 Description      : $@spelldesc196725
 
 Name             : Stat Negation Aura - Agility DPS (id=162697) [Passive, Hidden] 
-Class            : Beast Mastery Marksmanship Survival Assassination Outlaw Subtlety Enhancement Windwalker Feral Hunter, Rogue, Shaman, Monk, Druid
+Class            : Beast Mastery Marksmanship Survival Assassination Outlaw Subtlety Enhancement Windwalker Feral Havoc Hunter, Rogue, Shaman, Monk, Druid, Demon Hunter
 School           : Physical
 Attributes       : ......xx ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
@@ -3703,10 +3672,10 @@ Effects          :
 #2 (id=228479)   : Apply Aura (6) | Unknown effect sub type (467)
                    Base Value: -100 | Scaled Value: -100 | Target: Self(1)
 #3 (id=228480)   : Apply Aura (6) | Unknown effect sub type (466)
-                   Base Value: -100 | Scaled Value: -100 | Target: Self(1)
+                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 
 Name             : Stat Negation Aura - Agility Tank (id=162700) [Passive, Hidden] 
-Class            : Brewmaster Guardian Monk, Druid
+Class            : Brewmaster Guardian Vengeance Monk, Druid, Demon Hunter
 School           : Physical
 Attributes       : ......xx ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
@@ -3737,7 +3706,7 @@ Effects          :
 #2 (id=228495)   : Apply Aura (6) | Unknown effect sub type (467)
                    Base Value: -100 | Scaled Value: -100 | Target: Self(1)
 #3 (id=228496)   : Apply Aura (6) | Unknown effect sub type (466)
-                   Base Value: -100 | Scaled Value: -100 | Target: Self(1)
+                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
 
 Name             : Summon Black Ox Statue (id=163178) [Spell Family (53), Hidden] 
 Class            : Monk
@@ -3746,11 +3715,11 @@ Spell Level      : 1
 Range            : 40 yards
 Attributes       : .......x ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   .......x ........ ........ ........ 
+                 : ........ ........ ........ ........   .......x ........ ........ ..x..... 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : Hidden (7)
+                 : Hidden (7), Requires line of sight (186)
 Effects          :
 #1 (id=229488)   : Threat (63)
                    Base Value: 1 | Scaled Value: 1 | Radius: 0 - 30 yards | Target: Custom(18) -> AOE enemy (instant)(16)
@@ -4041,7 +4010,7 @@ Class            : Monk
 School           : Physical
 Range            : 100 yards
 Proc Chance      : 101%
-Artifact Power   : Id: 832, Max Rank: 1
+Artifact Power   : Id: 832, Index: 2, Max Rank: 1
 Proc Flags       : ....x... ....x... x....... ........ 
                  : Yellow Melee, AOE Hostile Spell, Hostile Spell
 Attributes       : ......x. ........ ........ .......x   ........ ........ ........ ....x... 
@@ -4439,8 +4408,9 @@ Stacks           : 1 initial, 1 maximum
 Proc Chance      : 100%
 Proc Flags       : ........ ......x. ........ ........ 
                  : Heal
+Affecting spells : Extend Life (185158), Lunar Glide (217153), 
 Attributes       : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ......x. 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
@@ -4455,7 +4425,7 @@ Tooltip          : Your next Vivify causes $s1% increased healing.
 Name             : Thunder Focus Tea (id=197218) [Spell Family (53), Hidden] 
 Class            : Monk
 School           : Nature
-Spell Level      : 66
+Spell Level      : 1
 Duration         : 30 seconds
 Stacks           : 1 maximum
 Proc Chance      : 101%
@@ -4556,28 +4526,6 @@ Effects          :
 #1 (id=290836)   : Apply Aura (6) | Dummy (4)
                    Base Value: 20 | Scaled Value: 20 | Misc Value 2: 0x8 | Target: Self(1)
 Description      : Enveloping Mist reduces the mana cost of your next Vivify by $s1%, and Vivify reduces the mana cost of your next Enveloping Mist by $s1%.
-
-Name             : Mistwalk (Talent) (id=197945) [Spell Family (53)] 
-Class            : Monk
-School           : Nature
-Spell Level      : 1
-Range            : 40 yards
-GCD              : 1.5 seconds
-Charges          : 2 (20 seconds cooldown)
-Category         : 1571
-Affecting spells : Enveloping Mist (124682)
-Attributes       : ....x... ........ ..x..... ........   ........ ........ ...x.... ........ 
-                 : ........ ........ ........ ........   ........ x....... ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ......x. ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
-Effects          :
-#1 (id=290903)   : Unknown effect type (254)
-                   Base Value: 0 | Scaled Value: 0 | Misc Value: 6 | Target: Unknown(132)
-#2 (id=290904)   : Direct Heal (10)
-                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 4.20000 | Target: Friend(21)
-Description      : Instantly dash to a friendly player and heal them for $s2.
 
 Name             : Zen Pulse (id=198487) [Spell Family (53)] 
 Class            : Monk
@@ -4745,7 +4693,7 @@ GCD              : 1 seconds
 Duration         : 6 seconds
 Cooldown         : 40 seconds
 Proc Chance      : 101%
-Artifact Power   : Id: 831, Max Rank: 1
+Artifact Power   : Id: 831, Index: 0, Max Rank: 1
 Proc Flags       : ....x... ....x... x....... ........ 
                  : Yellow Melee, AOE Hostile Spell, Hostile Spell
 Affecting spells : Windwalker Monk (137025), Storm, Earth, and Fire (137639), Serenity (152173), 
@@ -4773,7 +4721,7 @@ School           : Nature
 Range            : 40 yards
 Cast Time        : 2 seconds
 GCD              : 1.5 seconds
-Artifact Power   : Id: 931, Max Rank: 1
+Artifact Power   : Id: 931, Index: 0, Max Rank: 1
 Affecting spells : Enveloping Mist (124682)
 Attributes       : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
@@ -4826,7 +4774,7 @@ Attributes       : ........ ........ ..x..... ........   ........ .x...... .....
                  : ........ ........ ........ ........   ....x... ........ ........ ........ 
 Effects          :
 #1 (id=303663)   : School Damage: physical (2)
-                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 3.73500 | Chain Targets: 1 | Target: Enemy(6)
+                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 3.73500 | Chain Multiplier: 0 | Chain Targets: 1 | Target: Enemy(6)
 Description      : Strike with a blast of Chi energy, dealing $s1 Physical damage.
 Variables        : $stnc=$?a103985[${1.05*(1+$@versadmg)}][${1.0*(1+$@versadmg)}]
 $dwm=$?a108561|a115697[${1}][${0.857143}]
@@ -4990,7 +4938,10 @@ Attributes       : ......x. ........ ........ ........   ........ ........ .....
 Effects          :
 #1 (id=316119)   : Apply Aura (6) | Dummy (4)
                    Base Value: 0 | Scaled Value: 0 | Target: Self(1)
-Description      : Touch of Death can be used a second time within $213114d before its cooldown is triggered.
+#2 (id=370575)   : Apply Aura (6) | Add Percent Modifier: Generic Modifier (108)
+                   Base Value: 40 | Scaled Value: 40 | Target: Self(1)
+                   Affected Spells: Touch of Death (115080)
+Description      : Touch of Death deals $s2% increased damage and can be used a second time within $213114d before its cooldown is triggered.
 
 Name             : Hidden Master's Forbidden Touch (id=213114) [Spell Family (53)] 
 Class            : Monk
@@ -5013,7 +4964,7 @@ Tooltip          : You may cast Touch of Death again before the cooldown is trig
 Name             : Face Palm (id=213116) [Spell Family (53), Passive] 
 Class            : Monk
 School           : Physical
-Artifact Power   : Id: 1286, Max Rank: 8, Values: [ 10, 20, 30, 40, 50, 60, 70, 80 ]
+Artifact Power   : Id: 1286, Index: 12, Max Rank: 8, Values: [ 10, 20, 30, 40, 50, 60, 70, 80 ]
 Attributes       : ......x. ........ ........ .......x   ........ ........ ........ ....x... 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
@@ -5034,7 +4985,7 @@ GCD              : 1 seconds
 Velocity         : 15 yards/sec
 Duration         : 3 seconds
 Cooldown         : 75 seconds
-Artifact Power   : Id: 1277, Max Rank: 1
+Artifact Power   : Id: 1277, Index: 0, Max Rank: 1
 Attributes       : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
@@ -5267,7 +5218,7 @@ Attributes       : ........ ........ ..x..... ........   ........ .x...... .....
                  : ........ ........ ........ ........   ....x... ........ ........ ........ 
 Effects          :
 #1 (id=344387)   : School Damage: physical (2)
-                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 3.85000 | Chain Targets: 1 | Target: Enemy(6)
+                   Base Value: 0 | Scaled Value: 0 | AP Coefficient: 3.85000 | Chain Multiplier: 0 | Chain Targets: 1 | Target: Enemy(6)
 Description      : Kick with a blast of Chi energy, dealing $s1 Physical damage.
 Variables        : $stnc=$?a103985[${1.05*(1+$@versadmg)}][${1.0*(1+$@versadmg)}]
 $dwm=$?a108561|a115697[${1}][${0.857143}]
@@ -5351,7 +5302,7 @@ Description      : Storm, Earth, and Fire has ${$s1+1} charges.
 Name             : Essence Font (Rank 2) (id=231633) [Spell Family (53), Passive] 
 Class            : Mistweaver Monk
 School           : Frost
-Spell Level      : 55
+Spell Level      : 58
 Attributes       : ......x. ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
@@ -5402,22 +5353,62 @@ Effects          :
                    Affected Spells: Stagger (115069)
 Description      : Stagger is $s1% more effective against magical attacks.
 
+Name             : Master of Combinations (id=238095) [Spell Family (53), Passive] 
+Class            : Monk
+School           : Physical
+Artifact Power   : Id: 1550, Index: 0, Max Rank: 1
+Attributes       : ......x. ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : Passive (6)
+Effects          :
+#1 (id=360780)   : Apply Aura (6) | Dummy (4)
+                   Base Value: 0 | Scaled Value: 0 | Target: Self(1)
+#2 (id=369378)   : Dummy (3)
+                   Base Value: 4 | Scaled Value: 4 | Target: Self(1)
+Description      : Triggering Combo Strikes has a chance to grant $240672s1 Mastery to you and $s2 allies for $240672d.
+
 Name             : Master of Combinations (id=240672) 
 Class            : Monk
 School           : Physical
 Range            : 100 yards
-Duration         : 10 seconds
-Triggered by     : Master of Combinations (238095)
+Duration         : 6 seconds
 Attributes       : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
-                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ....x... ........ ........   ........ ........ ........ ........ 
                  : ........ ........ ........ ........   ........ ........ ........ ........ 
 Effects          :
 #1 (id=364982)   : Apply Aura (6) | Modify Rating (189)
                    Base Value: 600 | Scaled Value: 600 | Misc Value: 33554432 | Radius: 100 yards | Target: Unknown(118)
-Description      : Grants $s1 Mastery Rating.
-Tooltip          : Grants $s1 Mastery Rating.
+Description      : $@spelldesc238095
+Tooltip          : Mastery increased by $w1.
+
+Name             : Fortifying Brew (id=243435) 
+Class            : Mistweaver Monk
+School           : Physical
+Spell Level      : 55
+Duration         : 15 seconds
+Cooldown         : 90 seconds
+Attributes       : ........ ........ ........ ........   ........ ..x..... ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ........ ........ ........ ........ 
+                 : ........ ....x... ........ ........   ........ ........ ........ ........ 
+                 : ........ ........ ........ ........   ...x.... ........ ........ ........ 
+Effects          :
+#1 (id=369881)   : Apply Aura (6) | Unknown effect sub type (133)
+                   Base Value: 20 | Scaled Value: 20 | Target: Self(1)
+#2 (id=369882)   : Apply Aura (6) | Modify Damage Taken% (87)
+                   Base Value: -20 | Scaled Value: -20 | Misc Value: 0x7f | Target: Self(1)
+#3 (id=369883)   : Apply Aura (6) | Scale% (61)
+                   Base Value: 15 | Scaled Value: 15 | Target: Self(1)
+Description      : Turns your skin to stone, increasing your current and maximum health by $s1%, and reducing damage taken by $s2%.
+Tooltip          : Health increased by $w1%.
+Damage taken reduced by $w2%.
 
 

@@ -4,8 +4,13 @@ race=troll
 role=spell
 position=back
 talents=1021012
-artifact=4:139269:139259:139269:0:72:3:73:1:74:3:75:4:80:1:81:5:82:3:83:3:84:3:86:1:87:1:290:1:1339:1
+artifact=4:0:0:0:0:72:3:73:1:74:3:75:3:77:3:78:1:79:3:80:1:81:3:82:3:83:3:84:3:86:1:87:1:290:1:1169:1:1339:1:1371:1
 spec=arcane
+
+# Default consumables
+potion=deadly_grace
+flask=whispered_pact
+food=lavish_suramar_feast
 
 # This default action priority list is automatically created based on your character.
 # It is a attempt to provide you with a action list that is both simple and practicable,
@@ -14,13 +19,13 @@ spec=arcane
 # SimulationCraft is always looking for updates and improvements to the default action lists.
 
 # Executed before combat begins. Accepts non-harmful actions only.
-actions.precombat=flask,type=flask_of_the_whispered_pact
-actions.precombat+=/food,type=the_hungry_magister
+actions.precombat=flask
+actions.precombat+=/food
 actions.precombat+=/augmentation,type=defiled
 actions.precombat+=/summon_arcane_familiar
 actions.precombat+=/snapshot_stats
 actions.precombat+=/mirror_image
-actions.precombat+=/potion,name=deadly_grace
+actions.precombat+=/potion
 actions.precombat+=/arcane_blast
 
 # Executed every time the actor is available.
@@ -45,7 +50,6 @@ actions.burn=call_action_list,name=cooldowns
 actions.burn+=/charged_up,if=(equipped.132451&buff.arcane_charge.stack<=1)
 actions.burn+=/arcane_missiles,if=buff.arcane_missiles.react=3
 actions.burn+=/nether_tempest,if=dot.nether_tempest.remains<=2|!ticking
-actions.burn+=/arcane_blast,if=active_enemies<=1&mana.pct%10*execute_time>target.time_to_die
 actions.burn+=/arcane_explosion,if=active_enemies>1&mana.pct%10*execute_time>target.time_to_die
 actions.burn+=/presence_of_mind,if=buff.rune_of_power.remains<=2*action.arcane_blast.execute_time
 actions.burn+=/arcane_missiles,if=buff.arcane_missiles.react>1
@@ -76,7 +80,7 @@ actions.cooldowns+=/blood_fury
 actions.cooldowns+=/berserking
 actions.cooldowns+=/arcane_torrent
 actions.cooldowns+=/use_item,slot=finger2
-actions.cooldowns+=/potion,name=deadly_grace,if=buff.arcane_power.up&(buff.berserking.up|buff.blood_fury.up)
+actions.cooldowns+=/potion,if=buff.arcane_power.up&(buff.berserking.up|buff.blood_fury.up)
 
 actions.init_burn=mark_of_aluneth
 actions.init_burn+=/nether_tempest,if=dot.nether_tempest.remains<10&(prev_gcd.1.mark_of_aluneth|(talent.rune_of_power.enabled&cooldown.rune_of_power.remains<gcd.max))
@@ -108,7 +112,7 @@ main_hand=aluneth,id=127857,gem_id=139269/139259/139269,relic_id=1805/1805/1805
 
 # Gear Summary
 # gear_ilvl=866.93
-# gear_stamina=23776
+# gear_stamina=23777
 # gear_intellect=24598
 # gear_crit_rating=9560
 # gear_haste_rating=1642
